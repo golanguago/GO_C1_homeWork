@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 )
@@ -8,7 +9,20 @@ import (
 func main() {
 	fmt.Println("_____Подсчёт ИМТ_____")
 	for {
-		IMT := calculate(getIMT())
+		defer func() {
+			r := recover()
+			if r != nil {
+				fmt.Println("ТЕКСТ РЕКАВЕРА if r != nil ФУНКЦИИ defer, где r = ", r)
+			}
+
+		}()
+
+		IMT, err := calculate(getIMT())
+		if err != nil {
+			panic("Что то пошло не так, вероятно вы ошиблись при вводе роста или веса.")
+			// fmt.Println(err)
+			// continue
+		}
 		fmt.Println(printResult(IMT))
 		userChoice := repeatOrNotCalc()
 		if !userChoice {
@@ -35,10 +49,13 @@ func getIMT() (float64, float64) {
 	return userHeight, userWeight
 }
 
-func calculate(userH float64, userW float64) float64 {
+func calculate(userH float64, userW float64) (float64, error) {
+	if userH <= 0 || userW <= 0 {
+		return 0, errors.New("WRONG_PARAM_HEIGHT_OR_WEIGHT_ERROR_TRY_AGAIN")
+	}
 	const IMTPower = 2
 	result := userW / math.Pow(userH/100, IMTPower)
-	return result
+	return result, nil
 }
 
 func printResult(IMT float64) string {
